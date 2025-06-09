@@ -1,15 +1,162 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPERADMIN
+  COMPANY_ADMIN
+  STAFF
+  CUSTOMER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum AppointmentStatus {
+  BOOKED
+  CANCELLED
+  COMPLETED
+  RESCHEDULED
+}
+
+enum PaymentMethod {
+  ONLINE
+  OFFLINE
+}
+
+model User {
+  id               String        @id @default(cuid())
+  name             String
+  phone            String
+  email            String?
+  password         String
+  role             Role          @default(CUSTOMER)
+  companyId        String? 
+  company          Company?      @relation("CompanyUsers", fields: [companyId], references: [id])
+  createdCompanies Company[]     @relation("CreatedCompanies")
+  appointments     Appointment[] @relation("CustomerAppointments")
+  Slot             Slot[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@unique([phone, companyId])
+  @@unique([email, companyId])
+}
+
+model Company {
+  id           String        @id @default(cuid())
+  name         String
+  domain       String        @unique
+  phone        String        @unique
+  email        String        @unique
+  website      String?
+  logoUrl      String?
+  isApproved   Boolean       @default(false)
+  isActive     Boolean       @default(false)
+  statusNote   String?
+  planId       String?
+  plan         Plan?         @relation(fields: [planId], references: [id])
+  planStart    DateTime?
+  planEnd      DateTime?
+  createdById  String?
+  createdBy    User?         @relation("CreatedCompanies", fields: [createdById], references: [id])
+  users        User[]        @relation("CompanyUsers")
+  services     Service[]
+  slots        Slot[]
+  appointments Appointment[]
+  payments     Payment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Plan {
+  id           String        @id @default(cuid())
+  name         String
+  description  String
+  price        Float
+  durationDays Int
+  features     PlanFeature[]
+  companies    Company[]
+  payments     Payment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model PlanFeature {
+  id     String @id @default(cuid())
+  name   String
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id])
+  planId        String
+  plan          Plan          @relation(fields: [planId], references: [id])
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  gateway       String
+  transactionId String?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+}
+
+model Service {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  duration    Int // in minutes
+  price       Float
+  companyId   String
+  company     Company       @relation(fields: [companyId], references: [id])
+  slots       Slot[]
+  Appointment Appointment[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Slot {
+  id          String       @id @default(cuid())
+  date        DateTime
+  startTime   String
+  endTime     String
+  isBooked    Boolean      @default(false)
+  serviceId   String
+  service     Service      @relation(fields: [serviceId], references: [id])
+  companyId   String
+  company     Company      @relation(fields: [companyId], references: [id])
+  staffId     String?
+  staff       User?        @relation(fields: [staffId], references: [id])
+  appointment Appointment? @relation("SlotAppointment")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Appointment {
+  id            String            @id @default(cuid())
+  companyId     String
+  company       Company           @relation(fields: [companyId], references: [id])
+  customerId    String
+  customer      User              @relation("CustomerAppointments", fields: [customerId], references: [id])
+  serviceId     String
+  service       Service           @relation(fields: [serviceId], references: [id])
+  slotId        String?           @unique
+  slot          Slot?             @relation("SlotAppointment", fields: [slotId], references: [id])
+  paymentMethod PaymentMethod
+  paymentStatus PaymentStatus     @default(PENDING)
+  status        AppointmentStatus @default(BOOKED)
+  notes         String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 }
