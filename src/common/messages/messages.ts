@@ -10,19 +10,6 @@ export const Messages = {
   USER_ALREADY_EXISTS: 'User already exists with this email',
   PROFILE_FETCHED: 'Profile fetched successfully',
 
-  // Company
-  COMPANY_CREATED: 'Company registration submitted',
-  COMPANY_APPROVED: 'Company approved successfully',
-  COMPANY_DECLINED: 'Company declined',
-  COMPANY_NOT_FOUND: 'Company not found',
-  COMPANY_ALREADY_EXISTS: 'Company already registered',
-
-  // Plan
-  PLAN_CREATED: 'Plan created successfully',
-  PLAN_UPDATED: 'Plan updated successfully',
-  PLAN_DELETED: 'Plan deleted successfully',
-  PLAN_NOT_FOUND: 'Plan not found',
-
   // Payment
   PAYMENT_SUCCESS: 'Payment processed successfully',
   PAYMENT_FAILED: 'Payment failed',
@@ -43,15 +30,13 @@ export const Messages = {
   SLOT_UPDATED: 'Slot updated successfully',
   SLOT_NOT_AVAILABLE: 'Selected slot is not available',
 
-  // Validation & General
-  BAD_REQUEST: 'Bad request',
-  INTERNAL_ERROR: 'Something went wrong',
-  FORBIDDEN: 'Forbidden',
-  NOT_FOUND: 'Resource not found',
-  SUCCESS: 'Operation completed successfully',
-
   REQUIRED: (field: string) => `${field} is required`,
-  EMAIL_INVALID: 'Invalid email address',
-  MIN_LENGTH: (field: string, length: number) =>
-    `${field} must be at least ${length} characters`,
+  INVALID: (field: string) => `${field} is invalid`,
+  MIN: (field: string, value: number) => `${field} must be at least ${value}`,
+  CREATED: (entity: string) => `${entity} created successfully`,
+  UPDATED: (entity: string) => `${entity} updated successfully`,
+  DELETED: (entity: string) => `${entity} deleted successfully`,
+  FETCHED: (entity: string) => `${entity} fetched successfully`,
+  NOT_FOUND: (entity: string) => `${entity} not found`,
+  ALREADY_EXISTS: (entity: string) => `${entity} already exists`,
 };
