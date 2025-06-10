@@ -28,6 +28,7 @@ export class CompanyService {
     const plan = await this.prisma.plan.findUnique({
       where: { id: dto.planId },
     });
+    console.log(plan, "plan")
     if (!plan) throw new BadRequestException(Messages.NOT_FOUND("Plan"));
     return this.prisma.company.create({
       data: {

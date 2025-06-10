@@ -7,38 +7,51 @@ import { Messages } from 'src/common/messages/messages';
 export class PlanService {
   constructor(private readonly prisma: PrismaService) {}
   async create(dto: CreatePlanDto) {
-    const exists = await this.prisma.plan.findFirst({
-      where: { name: dto.name },
-    });
-    if (exists) throw new BadRequestException(Messages.ALREADY_EXISTS('Plan'));
+    try {
+      const exists = await this.prisma.plan.findFirst({
+        where: { name: dto.name },
+      });
+      console.log(exists, 'exists');
 
-    const plan = await this.prisma.plan.create({
-      data: {
-        name: dto.name,
-        description: dto.description,
-        price: dto.price,
-        durationDays: dto.durationDays,
-        features: {
-          create: dto.features.map((name) => ({ name })),
+      if (exists)
+        throw new BadRequestException(Messages.ALREADY_EXISTS('Plan'));
+
+      const plan = await this.prisma.plan.create({
+        data: {
+          name: dto.name,
+          description: dto.description,
+          price: dto.price,
+          durationDays: dto.durationDays,
+          features: {
+            create: dto.features.map((name) => ({ name })),
+          },
         },
-      },
-      include: { features: true },
-    });
-    return {
-      data: plan,
-      message: Messages.CREATED('Plan'),
-    };
+        include: { features: true },
+      });
+
+      console.log(plan, 'plan');
+      return {
+        data: plan,
+        message: Messages.CREATED('Plan'),
+      };
+    } catch (error) {
+      console.error('❌ Error in create plan:', error);
+      throw new BadRequestException(error?.message || 'Something went wrong');
+    }
   }
 
   async getAll() {
     return await this.prisma.plan.findMany({
       include: { features: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
     });
   }
 
   async getById(id: string) {
-    return this.prisma.plan.findUnique({ where: { id } });
+    return this.prisma.plan.findUnique({
+      where: { id },
+      include: { features: true },
+    });
   }
 
   async update(id: string, dto: UpdatePlanDto) {
@@ -61,7 +74,7 @@ export class PlanService {
   }
 
   async delete(id: string) {
-    const existing = await this.prisma.plan.findFirst({ where: { id } });
+    const existing = await this.prisma.plan.findUnique({ where: { id } });
     if (!existing) throw new BadRequestException(Messages.NOT_FOUND('Plan'));
 
     return this.prisma.plan.delete({ where: { id } });

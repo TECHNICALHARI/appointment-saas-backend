@@ -6,8 +6,9 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { LoginDto, SignupDto } from './auth.dto';
+import { LoginDto, LoginSuperAdminDto, SignupDto } from './auth.dto';
 import * as bcrypt from 'bcrypt';
+import { Messages } from 'src/common/messages/messages';
 @Injectable()
 export class AuthService {
   constructor(
@@ -52,7 +53,20 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Invalid credentials');
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
-    return this.generateToken(user);
+    const { password, createdAt, updatedAt, ...safeUser } = user;
+    return this.generateToken(safeUser);
+  }
+
+  async loginSuperAdmin(dto: LoginSuperAdminDto) {
+    const user = await this.prisma.user.findFirst({
+      where: { email: dto.email },
+    });
+    if (!user) throw new BadRequestException(Messages.NOT_FOUND('User'));
+
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) throw new UnauthorizedException(Messages.INVALID_CREDENTIALS);
+    const { password, createdAt, updatedAt, companyId, ...safeUser } = user;
+    return this.generateToken(safeUser);
   }
 
   generateToken(user: any) {
