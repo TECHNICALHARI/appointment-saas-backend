@@ -1,6 +1,6 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { InitiatePaymentDto } from './payment.dto';
+import { InitiatePaymentDto, VerifyPaymentDto } from './payment.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -15,5 +15,10 @@ export class PaymentController {
   @Roles(Role.COMPANY_ADMIN)
   initiate(@Body() dto: InitiatePaymentDto) {
     return this.service.initiatePayment(dto);
+  }
+
+  @Post('verify')
+  verify(@Body() dto: VerifyPaymentDto) {
+    return this.service.verifyPayment(dto);
   }
 }

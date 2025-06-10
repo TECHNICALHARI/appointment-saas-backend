@@ -36,11 +36,11 @@ enum PaymentMethod {
 model User {
   id               String        @id @default(cuid())
   name             String
-  phone            String
-  email            String?
+  phone            String        @unique
+  email            String?       @unique
   password         String
   role             Role          @default(CUSTOMER)
-  companyId        String? 
+  companyId        String?
   company          Company?      @relation("CompanyUsers", fields: [companyId], references: [id])
   createdCompanies Company[]     @relation("CreatedCompanies")
   appointments     Appointment[] @relation("CustomerAppointments")
@@ -107,7 +107,7 @@ model Payment {
   amount        Float
   status        PaymentStatus @default(PENDING)
   gateway       String
-  transactionId String?
+  transactionId String?       @unique
   paidAt        DateTime?
   createdAt     DateTime      @default(now())
 }
